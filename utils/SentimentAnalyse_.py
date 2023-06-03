@@ -46,4 +46,4 @@ def predict(text=""):
 
 
 if __name__ == '__main__':
-    print(predict("i'm very hungry now"))
+    print(predict("i'm very hungry now"))  # ('neutral', '(neutral,0.5311);(negative,0.2867);(positive,0.1822)')
