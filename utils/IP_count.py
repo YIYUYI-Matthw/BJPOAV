@@ -1,65 +1,36 @@
 """
 读取数据库（暂时是excel）并统计省份->国家信息
 """
-import openpyxl
-import pycountry
-from geopy.geocoders import Nominatim
 # 导入requests包
 import requests
 
-
-def _getLocationByProvince(province_str):
-    geolocator = Nominatim(user_agent="my-app")
-
-    location = geolocator.geocode(province_str)
-
-    if location:
-        latitude = location.latitude
-        longitude = location.longitude
-        print(province_str + f"的经纬度坐标为: ({latitude}, {longitude})")
-        return location
-    else:
-        print("无法找到北京的经纬度坐标")
-        return None
+# 替换为您的 ArcGIS REST API 地址
+geocode_url = "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates"
+reverse_geocode_url = "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode"
 
 
-def getCountryByProvince_dep(province_str=""):
-    location = _getLocationByProvince(province_str)
-    if location is None:
-        print("无法找到对应国家的信息")
-        return None
-    country = pycountry.countries.search(latitude=location.latitude, longitude=location.longitude)
+def geocode(location):
+    params = {
+        "SingleLine": location,
+        "outFields": "Country",
+        "f": "json"
+    }
+    response = requests.get(geocode_url, params=params).json()
 
-    if country:
-        country_name = country[0].name
-        print(f"北京所在的国家是: {country_name}")
-        return country_name
-    else:
-        print("无法找到北京所在的国家")
-        return None
+    if "candidates" in response and len(response["candidates"]) > 0:
+        predict_ = response["candidates"][0]
+        country = predict_["attributes"]["Country"]
+        location_ = (predict_['location']['x'], predict_['location']['y'])
+        return country, location_
 
-
-def reverGeo_gaode(province_str=""):
-    url = "https://restapi.amap.com/v3/geocode/geo"
-    parameters = {"address": province_str,
-                  "output": "JSON",
-                  "key": "c93f574233412333a6b3779b2fe789e7"}
-    res = eval(requests.get(url=url, params=parameters).text)
-    if res.get("status") is "0":
-        print("查询无果")
-        return None
-    print(res.get("geocodes")[0])
-    print(res.get("geocodes")[0].get("country"))
-
-
-def getProvinces():
-    # TODO：待续：等找到合适的SDK再来做
-    origin_book_path = "../static/resources/docs/userInfo.xlsx"
-    work_book = openpyxl.load_workbook(origin_book_path)
-    sheet_instance = work_book["Sheet1"]
-    comment_idxes, comments = sheet_instance['C']
-    pass
+    return None
 
 
 if __name__ == '__main__':
-    reverGeo_gaode(province_str="BeiJing")
+    location = "مصر"
+    country_, location_ = geocode(location)
+    if country_:
+        print(f"The country of {location} is {country_}.")
+        print(f"The location of {location} is {location_}.")
+    else:
+        print(f"Could not find the country for {location}.")
