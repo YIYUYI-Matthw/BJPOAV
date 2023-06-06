@@ -31,8 +31,8 @@ topic_30 = BERTopic(umap_model=umap_model,
 
 
 def cluster(comments):
-    if len(comments) < 500:
-        print("more samples needed")
+    if len(comments) < 100:
+        print(f"more samples needed ({len(comments)} is provided for now.")
         return None
     topic_30.fit_transform(comments)
     return topic_30
