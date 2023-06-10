@@ -34,8 +34,15 @@
         dataType: "json",
         success:
             function (data) {
+                let dataAddr = JSON.parse('{{ dataAddr|safe }}');
+                let locations = JSON.parse('{{ locations|safe }}');
+                console.log("dataAddr: ")
+                console.log(dataAddr)
                 console.log(data.dataArr)
+                console.log("namemap")
                 console.log(data.namemap)
+                console.log("locations")
+                data.dataArr = dataAddr
                 const mapContainer = document.getElementById('world_map');
                 // 初始化echarts实例
                 const myChart = echarts.init(mapContainer);
@@ -63,7 +70,7 @@
                     },
                     series: [
                         {
-                            name: "示例数据",
+                            name: "推文IP分布统计",
                             type: "map",
                             mapType: "world",
                             roam: true,
@@ -72,6 +79,17 @@
                             },
                             nameMap: data.namemap,
                             data: data.dataArr,
+                            // 标记点数据
+                            markPoint: {
+                                // 标记点的类型，可以自定义图片等
+                                symbol: 'pin',
+                                symbolSize: 20,
+                                label: {
+                                    show: true
+                                },
+                                // 省份的经纬度数据
+                                data: locations
+                            }
                         },
                     ],
                 };

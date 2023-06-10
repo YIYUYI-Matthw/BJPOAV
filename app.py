@@ -44,8 +44,19 @@ def sentiment_ana():
 
 @app.route("/world_map")
 def world_map():
-    # TODO：把后续的巴拉巴拉做好
-    pass
+    try:
+        dataAddr, locations = read_cache()
+    except:
+        dataAddr, locations = get_map_data()
+    print(len(locations))
+    print(locations[4385])  # 'name': '11°3328.5"N 92°1422.6"E'：去掉
+    locations_extract = []
+    for location in locations:
+        if '°' in location:
+            continue
+        locations_extract.append(location)
+    return render_template("world_map.html", dataAddr=json.dumps(dataAddr),
+                           locations=json.dumps(locations_extract))
 
 
 if __name__ == '__main__':
