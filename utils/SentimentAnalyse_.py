@@ -26,11 +26,6 @@ def preprocess(text):
 
 
 def predict(text=""):
-    """
-    接收原始输入（单句）
-    :param text: 原始输入
-    :return: label-预测情感；labels-三类情感及其概率预测
-    """
     text = preprocess(text)
     encoded_input = tokenizer(text, return_tensors='pt')
     output = model(**encoded_input)
