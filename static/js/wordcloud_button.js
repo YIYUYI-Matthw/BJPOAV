@@ -12,6 +12,8 @@ fetch('/get_image_list')
     });
 // 渲染按钮和下拉菜单
 function renderButtons(imageList) {
+    const deleteBtn = document.getElementById('deleteWord-button');
+    deleteBtn.textContent = '删除指定单词';
     const uploadButton = document.getElementById('upload-button');
     const dropdownContainer = document.getElementById('dropdown-container');
     // 创建下拉菜单的按钮
@@ -24,6 +26,7 @@ function renderButtons(imageList) {
     dropdownContent.className = 'dropdown-content';
     dropdownContainer.appendChild(dropdownContent);
     let isDropdownVisible = false; // 记录下拉菜单是否可见的状态
+    let wordToDelete; // 记录要删除的单词
     dropdownBtn.addEventListener('click', () => {
         if (isDropdownVisible) {
             dropdownContent.classList.remove('show');
@@ -37,11 +40,14 @@ function renderButtons(imageList) {
         const optionBtn = document.createElement('button');
         optionBtn.textContent = imageUrl;
         optionBtn.addEventListener('click', () => {
-            console.log(imageUrl);
-            getImageData(imageUrl);
+            getImageData(imageUrl,wordToDelete);
         });
         dropdownContent.appendChild(optionBtn);
     });
+    //监听删除按钮的点击事件
+    deleteBtn.addEventListener('click', () => {
+        wordToDelete = window.prompt('请输入要剔除的单词,注意用;隔开');
+    });    
     // 监听上传按钮的点击事件
     uploadButton.addEventListener('click', () => {
         // 创建文件选择的input元素
@@ -56,7 +62,7 @@ function renderButtons(imageList) {
         reader.onload = (event) => {
             const base64Data = event.target.result;
             // 绘制词云图形
-            drawWordCloud(base64Data);
+            drawWordCloud(base64Data,wordToDelete);
         };
         // 读取文件为base64数据
         reader.readAsDataURL(file);
@@ -66,7 +72,7 @@ function renderButtons(imageList) {
     });
 }
 // 获取图片数据
-function getImageData(imageUrl) {
+function getImageData(imageUrl,wordToDelete) {
     // 使用fetch发送POST请求，获取Base64图片数据
     fetch('/get_base64_image', {
         method: 'POST',
@@ -79,7 +85,7 @@ function getImageData(imageUrl) {
     .then(data => {
         const base64Data = data.base64_data;
         // 在这里可以使用Base64图片数据进行操作，例如将其显示在页面上或下载
-        drawWordCloud('data:image/png;base64,'+base64Data);
+        drawWordCloud('data:image/png;base64,'+base64Data,wordToDelete);
         // 隐藏下拉菜单
         const dropdownContent = document.querySelector('.dropdown-content');
         dropdownContent.classList.remove('show');
@@ -88,8 +94,19 @@ function getImageData(imageUrl) {
         console.error('Error:', error);
     });
 }
+//删除用户输入单词的函数
+function deleteWordFromData(data, wordsToDelete) {
+    if (typeof wordsToDelete === 'undefined') {
+      return data; // 如果 wordsToDelete 为 undefined，直接返回原始数组
+    }
+    // 将用户输入的单词字符串拆分成单词数组
+    var wordsArray = wordsToDelete.split(';');
+    // 删除匹配的单词（不区分大小写）
+    return data.filter(item => !wordsArray.some(word => item.name.toLowerCase() === word.toLowerCase()));
+  }
 //绘制词云图函数
-function drawWordCloud(base64_data){
+function drawWordCloud(base64_data,wordToDelete){
+    console.log(wordToDelete);//wordToDelete有两种情况一是用户输入了 二是undefined
     //此处先暂且固定数据把
     var data = [
       {
@@ -2093,7 +2110,9 @@ function drawWordCloud(base64_data){
           "value": 197
       }
   ]
-    var values = Object.values(data); // 获取权重值数组
+    var updatedata = deleteWordFromData(data, wordToDelete);
+    //var values = Object.values(data); // 获取权重值数组
+    var values = Object.values(updatedata); // 获取权重值数组
     var minWeight = Math.min(...values); // 获取最小权重值
     var maxWeight = Math.max(...values); // 获取最大权重值
     var weightRange = [minWeight, maxWeight]; // 权重范围数组
@@ -2169,7 +2188,7 @@ function drawWordCloud(base64_data){
             bottom: null,
             //width: "100%",
             //height: "100%",
-            data: data
+            data: updatedata
           }
         ]
     })}
