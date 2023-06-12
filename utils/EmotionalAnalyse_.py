@@ -19,9 +19,18 @@ def preprocess(text):
         t = 'http' if t.startswith('http') else t
         new_text.append(t)
     return " ".join(new_text)
-def predict(x):
+# 遍历情绪列表，找到最大概率对应的情绪标签
+def clean_result(result):
+    max_score = 0.0
+    max_label = ''
+    for emotion in result[0]:
+        if emotion['score'] > max_score:
+            max_score = emotion['score']
+            max_label = emotion['label']
+    return max_label
+def predict_emotion(x):
     pipe = pipeline("text-classification", model=r"D:\jupyter_code\中国故事\emotionalanalysis-tweetnlp\emotional_analysis",return_all_scores=True)
-    return pipe(preprocess(x))
+    return pipe(preprocess(x)),clean_result(pipe(preprocess(x)))
 if __name__=="__main__":
     '''
         返回结果为：共11种情绪
@@ -37,6 +46,6 @@ if __name__=="__main__":
         {'label': 'surprise', 'score': 0.01900850608944893}, 
         {'label': 'trust', 'score': 0.0055234236642718315}]]
     '''
-    print(predict("i'm very hungry now"))
+    print(predict_emotion("i'm very hungry now")[1])
     
 
